@@ -337,55 +337,76 @@ const sendMessage = async () => {
 const renderMarkdown = (content: string): string => {
   if (!content) return ''
 
+  // 0. 預先處理：若編號清單被連在句號後 (如「...。2. 」)，自動補上換行
+  let raw = content.replace(/([。！？；])\s*(\d+\.\s+)/g, '$1\n$2')
+
   // 1. HTML 跳脫 (防止 XSS)
-  let html = content
+  let html = raw
     .replace(/&/g, '&amp;')
     .replace(/</g, '&lt;')
     .replace(/>/g, '&gt;')
 
   // 2. 代碼區塊 ```code```
-  html = html.replace(/```([\s\S]*?)```/g, (_match, code) => {
-    return `<pre class="my-2 p-2.5 bg-[#0e1420] text-blue-300 font-mono text-xs rounded-lg overflow-x-auto border border-slate-800"><code>${code.trim()}</code></pre>`
+  html = html.replace(/```([a-zA-Z0-9_-]*)\n([\s\S]*?)```/g, (_match, _lang, code) => {
+    return `<pre class="my-2.5 p-3 bg-[#0a0f18] text-blue-300 font-mono text-xs rounded-xl overflow-x-auto border border-slate-800 shadow-inner"><code>${code.trim()}</code></pre>`
   })
 
   // 3. 行內代碼 `code`
-  html = html.replace(/`([^`]+)`/g, '<code class="px-1.5 py-0.5 rounded bg-slate-800 text-blue-300 font-mono text-xs border border-slate-700">$1</code>')
+  html = html.replace(/`([^`]+)`/g, '<code class="px-1.5 py-0.5 mx-0.5 rounded bg-slate-800/90 text-blue-300 font-mono text-xs border border-slate-700">$1</code>')
 
   // 4. 粗體 **text**
   html = html.replace(/\*\*([^*]+)\*\*/g, '<strong class="text-white font-semibold">$1</strong>')
 
-  // 5. 連結 [text](url)
+  // 5. 標題 ###、##、#
+  html = html.replace(/^###\s+(.+)$/gm, '<h5 class="text-sm font-bold text-blue-300 mt-2 mb-1">$1</h5>')
+  html = html.replace(/^##\s+(.+)$/gm, '<h4 class="text-sm font-bold text-blue-200 mt-2.5 mb-1">$1</h4>')
+  html = html.replace(/^#\s+(.+)$/gm, '<h3 class="text-base font-bold text-white mt-3 mb-1.5">$1</h3>')
+
+  // 6. 連結 [text](url)
   html = html.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer" class="text-blue-400 hover:text-blue-300 underline underline-offset-2">$1</a>')
 
-  // 6. 項目符號清單 (- item 或 * item)
+  // 7. 解析項目符號清單 (- / *) 與 編號清單 (1. / 2.)
   const lines = html.split('\n')
   const formattedLines: string[] = []
-  let inList = false
+  let listType: 'ul' | 'ol' | null = null
 
   for (let line of lines) {
     const trimmed = line.trim()
-    if (trimmed.startsWith('- ') || trimmed.startsWith('* ')) {
-      if (!inList) {
-        formattedLines.push('<ul class="my-1.5 space-y-1 list-disc list-inside text-slate-200">')
-        inList = true
+    const isBullet = trimmed.startsWith('- ') || trimmed.startsWith('* ')
+    const isNumbered = /^\d+\.\s+/.test(trimmed)
+
+    if (isBullet) {
+      if (listType !== 'ul') {
+        if (listType === 'ol') formattedLines.push('</ol>')
+        formattedLines.push('<ul class="my-2 space-y-1.5 list-disc list-outside ml-4 text-slate-200">')
+        listType = 'ul'
       }
-      formattedLines.push(`<li class="leading-relaxed">${trimmed.substring(2)}</li>`)
+      formattedLines.push(`<li class="leading-relaxed pl-1">${trimmed.substring(2)}</li>`)
+    } else if (isNumbered) {
+      if (listType !== 'ol') {
+        if (listType === 'ul') formattedLines.push('</ul>')
+        formattedLines.push('<ol class="my-2 space-y-1.5 list-decimal list-outside ml-4 text-slate-200">')
+        listType = 'ol'
+      }
+      const itemContent = trimmed.replace(/^\d+\.\s+/, '')
+      formattedLines.push(`<li class="leading-relaxed pl-1">${itemContent}</li>`)
     } else {
-      if (inList) {
-        formattedLines.push('</ul>')
-        inList = false
+      if (listType) {
+        formattedLines.push(listType === 'ul' ? '</ul>' : '</ol>')
+        listType = null
       }
       formattedLines.push(line)
     }
   }
-  if (inList) {
-    formattedLines.push('</ul>')
+
+  if (listType) {
+    formattedLines.push(listType === 'ul' ? '</ul>' : '</ol>')
   }
 
   html = formattedLines.join('\n')
 
-  // 7. 換行轉換為 <br/>
-  html = html.replace(/\n\n/g, '<div class="h-2"></div>')
+  // 8. 換行轉換為段落間距或 <br/>
+  html = html.replace(/\n\n+/g, '<div class="h-2.5"></div>')
   html = html.replace(/\n/g, '<br/>')
 
   return html
@@ -420,11 +441,11 @@ watch(
 .chat-markdown :deep(p) {
   margin: 0.25rem 0;
 }
-.chat-markdown :deep(ul) {
-  margin: 0.35rem 0;
-  padding-left: 0.5rem;
+.chat-markdown :deep(ul),
+.chat-markdown :deep(ol) {
+  margin: 0.4rem 0;
 }
 .chat-markdown :deep(li) {
-  margin: 0.15rem 0;
+  margin: 0.2rem 0;
 }
 </style>
