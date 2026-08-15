@@ -2,23 +2,31 @@ import { defineEventHandler, readBody, createError } from 'h3'
 
 interface ChatMessage {
   role: 'system' | 'user' | 'assistant'
-  content: string
 }
 
 const SYSTEM_PROMPT = `你是 Lin Tsai (蔡弘霖) 的專屬 AI 技術特助。你的任務是代表 Lin 簡潔、精準、客觀且專業地回答訪客問題。
 
 ---
 【極簡精煉對話守則】
-1. **控制篇幅**：每次回覆嚴格控制在 **100~180 字以內**。言簡意賅，絕不冗長。
-2. **精準有力**：直接回答核心，列點最多 **2~3 點**。
+1. **控制篇幅**：每次回覆本文控制在 **100~160 字以內**。言簡意賅，直指核心。
+2. **精準有力**：直接回答核心，重點條列最多 **2~3 點**。
 3. **身份一致**：請以「Lin 的 AI 助理」或稱呼「Lin」的角度客觀回覆。
-4. **真實客觀**：僅依據下方真實資訊回答。遇到不適合的領域（如韌體/消費硬體）請誠實回答不適合；遇到符合的領域（AI/後端/金融CTI）請自信說明優勢。
+4. **真實客觀**：僅依據下方真實資訊回答。遇到不適合的領域（如韌體/消費硬體）誠實說明不適合；遇到符合的領域（AI/後端/金融CTI）自信說明優勢。
 
 ---
-【價格與敏感資訊守則（極重要）】
-⚠️ **嚴禁自行捏造任何具體金額數字、日費或專案價格**（例如絕對不可自創 50 萬、1 萬、日費等數字）。
-當訪客詢問「費用」、「具體報價」或「薪資」時，請統一這樣回答：
-「每個企業專案的資料複雜度、硬體算力環境與系統整合規模皆不同，費用需在需求訪談或 PoC 評估後才能提供精準報價（支援顧問時薪、專案制或維運協作）。建議您將具體需求寄至 Lin 的 Email：**lin15642@gmail.com**，Lin 會親自與您評估並提供客製化提案！」
+【動態延伸提問產生（最重要）】
+在每次回答的最末尾，請「必須」另起一行，以固定標籤格式輸出 2~3 個與剛才對話內容高度相關、能引導訪客繼續深入探討的點擊推薦問題（每題 6~15 字）：
+格式：
+[SUGGESTIONS: 推薦問題一 | 推薦問題二 | 推薦問題三]
+
+例如回答完 RAG 專案後：
+[SUGGESTIONS: 了解 2x RTX 4090 GPU 配置 | 詢問 RAG Hybrid Search 防幻覺機制 | 了解顧問合作流程]
+
+---
+【價格與敏感資訊守則】
+⚠️ **嚴禁自行捏造任何具體金額數字、日費或專案價格**。
+當訪客詢問「費用」、「具體報價」或「薪資」時，統一說明：
+「每個企業專案的資料複雜度、硬體算力環境與系統整合規模皆不同，費用需在需求訪談或 PoC 評估後才能提供精準報價。建議您將具體需求寄至 Lin 的 Email：**lin15642@gmail.com**，Lin 會親自與您評估並提供客製化提案！」
 
 ---
 【Lin Tsai 核心背景】
@@ -47,7 +55,7 @@ const SYSTEM_PROMPT = `你是 Lin Tsai (蔡弘霖) 的專屬 AI 技術特助。�
 
 export default defineEventHandler(async (event) => {
   try {
-    const body = await readBody<{ messages: ChatMessage[] }>(event)
+    const body = await readBody<{ messages: Array<{ role: 'user' | 'assistant' | 'system'; content: string }> }>(event)
 
     if (!body || !Array.isArray(body.messages) || body.messages.length === 0) {
       throw createError({
@@ -65,11 +73,12 @@ export default defineEventHandler(async (event) => {
     if (!apiKey) {
       console.warn('[AI Assistant] GROQ_API_KEY is not configured in environment variables.')
       return {
-        reply: `⚠️ **提醒**：目前後端尚未設定 \`GROQ_API_KEY\`。\n\n請在專案根目錄的 \`.env\` 檔案中填入您的 Groq API Key：\n\`\`\`bash\nGROQ_API_KEY=gsk_your_groq_api_key_here\n\`\`\`\n\n您可以至 [Groq Console](https://console.groq.com/keys) 免費申請 API Key。\n\n若有任何技術合作或求職諮詢，歡迎直接透過 Email 聯繫 Lin：**lin15642@gmail.com**！`
+        reply: `⚠️ **提醒**：目前後端尚未設定 \`GROQ_API_KEY\`。\n\n請在專案根目錄的 \`.env\` 檔案中填入您的 Groq API Key：\n\`\`\`bash\nGROQ_API_KEY=gsk_your_groq_api_key_here\n\`\`\`\n\n您可以至 [Groq Console](https://console.groq.com/keys) 免費申請 API Key。\n\n若有任何技術合作或求職諮詢，歡迎直接透過 Email 聯繫 Lin：**lin15642@gmail.com**！`,
+        suggestions: ['如何取得 Groq API Key', 'Lin 的背景與專案實績', '聯絡 Lin 的 Email']
       }
     }
 
-    // 過濾並限制對話歷史長度（保留最近 8 則對話，防止 token 溢出）
+    // 過濾並限制對話歷史長度（保留最近 8 則對話）
     const recentMessages = body.messages
       .slice(-8)
       .map((msg) => ({
@@ -87,8 +96,8 @@ export default defineEventHandler(async (event) => {
         },
         ...recentMessages
       ],
-      temperature: 0.3,
-      max_tokens: 380,
+      temperature: 0.35,
+      max_tokens: 450,
       top_p: 0.85
     }
 
@@ -117,18 +126,41 @@ export default defineEventHandler(async (event) => {
       })
     }
 
+    // 解析引導推薦提問 [SUGGESTIONS: ... ]
+    let cleanReply = replyContent
+    let suggestions: string[] = []
+
+    const suggestionMatch = replyContent.match(/\[SUGGESTIONS:\s*([^\]]+)\]/i)
+    if (suggestionMatch && suggestionMatch[1]) {
+      suggestions = suggestionMatch[1]
+        .split('|')
+        .map((s) => s.trim().replace(/^[•\-\d.]\s*/, ''))
+        .filter((s) => s.length > 0 && s.length <= 25)
+
+      // 從對話本文中移除標籤
+      cleanReply = replyContent.replace(/\[SUGGESTIONS:\s*[^\]]+\]/gi, '').trim()
+    }
+
+    // 若模型未產出或格式異常時的智慧備援推薦
+    if (suggestions.length === 0) {
+      suggestions = [
+        '了解 Lin 在廣明光電的 AI 實績',
+        '詢問金融級通訊中台專案架構',
+        '如何與 Lin 展開企業顧問合作'
+      ]
+    }
+
     return {
-      reply: replyContent
+      reply: cleanReply,
+      suggestions: suggestions.slice(0, 3)
     }
   } catch (error: any) {
     console.error('[AI Assistant API Error]:', error)
     
-    // 若為自訂的 HTTP Error
     if (error.statusCode) {
       throw error
     }
 
-    // 若為第三方 API 錯誤或逾時
     const errorMessage = error?.data?.error?.message || error?.message || '未知錯誤'
     throw createError({
       statusCode: 500,

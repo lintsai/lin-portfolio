@@ -149,6 +149,28 @@
               <div v-if="msg.role === 'assistant'" class="chat-markdown" v-html="renderMarkdown(msg.content)"></div>
               <!-- User 純文字呈現 -->
               <div v-else class="whitespace-pre-wrap break-words">{{ msg.content }}</div>
+
+              <!-- 動態延伸引導提問 (Suggestion Chips) -->
+              <div
+                v-if="msg.role === 'assistant' && msg.suggestions && msg.suggestions.length > 0"
+                class="mt-2.5 pt-2 border-t border-slate-700/50 flex flex-col gap-1.5 not-prose"
+              >
+                <div class="text-[11px] font-medium text-blue-300 flex items-center gap-1">
+                  <span>💡</span> 您可能想接著問：
+                </div>
+                <div class="flex flex-wrap gap-1.5">
+                  <button
+                    v-for="(sug, sIdx) in msg.suggestions"
+                    :key="sIdx"
+                    @click="sendQuickPrompt(sug)"
+                    :disabled="isLoading"
+                    class="text-xs text-left px-2.5 py-1.5 bg-[#121927] hover:bg-blue-600/30 text-blue-200 hover:text-white border border-blue-500/30 hover:border-blue-400 rounded-lg transition-all flex items-center gap-1.5 group disabled:opacity-50 disabled:cursor-not-allowed shadow-sm"
+                  >
+                    <span class="text-blue-400 text-[10px] group-hover:translate-x-0.5 transition-transform">➜</span>
+                    <span>{{ sug }}</span>
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
 
@@ -211,6 +233,7 @@ interface DisplayMessage {
   role: 'user' | 'assistant'
   content: string
   time: string
+  suggestions?: string[]
 }
 
 const isOpen = ref(false)
@@ -228,21 +251,19 @@ const getCurrentTime = () => {
 // 預設歡迎訊息
 const initialWelcomeMessage: DisplayMessage = {
   role: 'assistant',
-  content: '您好！我是 **Lin Tsai (蔡弘霖)** 的專屬 AI 助理 🤖。\n\n您可以向我詢問關於 Lin 的：\n- 🧠 **AI & RAG 落地實績**（地端 Ollama、2x RTX 4090 GPU、向量檢索）\n- ⚡ **10 年後端微服務與高併發架構**（Java / Spring Cloud、C#、Python）\n- 👥 **5 年技術團隊管理經驗**（帶領 9~12 人、PSM I 敏捷）\n- 🚀 **企業私有化 AI / CTI 通訊中台等顧問諮詢服務**\n\n請問有什麼我可以協助您的嗎？',
-  time: getCurrentTime()
+  content: '您好！我是 **Lin Tsai (蔡弘霖)** 的專屬 AI 助理 🤖。\n\n您可以向我詢問關於 Lin 的架構經驗、AI 專案實績或顧問諮詢合作！',
+  time: getCurrentTime(),
+  suggestions: [
+    '🧠 介紹企業私有化 AI/RAG 實績',
+    '⚡ 10年後端微服務與金融 CTI',
+    '👥 5年技術管理與團隊規模',
+    '🚀 顧問諮詢與專案協作流程'
+  ]
 }
 
 const messages = reactive<DisplayMessage[]>([
   { ...initialWelcomeMessage }
 ])
-
-// 推薦快捷提問列表
-const quickSuggestions = [
-  { label: '🧠 AI / RAG 專案實績', prompt: '請介紹 Lin 在企業私有化 AI 與 RAG 知識庫建置的具體經驗與成果。' },
-  { label: '💼 10年後端與管理背景', prompt: '請概述 Lin 的 10 年軟體工程與 5 年技術團隊管理背景。' },
-  { label: '🏦 金融級大型系統經歷', prompt: 'Lin 曾主導哪些金融級或銀行（如富邦、LINE Bank）客服系統專案？' },
-  { label: '🚀 顧問與接案服務項目', prompt: 'Lin 目前提供哪些企業技術顧問與架構諮詢服務？' }
-]
 
 // 切換對話視窗開關
 const toggleChat = () => {
@@ -301,7 +322,7 @@ const sendMessage = async () => {
     }))
 
     // 3. 呼叫 Nuxt 3 伺服器端 API
-    const response = await $fetch<{ reply?: string }>('/api/chat', {
+    const response = await $fetch<{ reply?: string; suggestions?: string[] }>('/api/chat', {
       method: 'POST',
       body: {
         messages: payloadMessages
@@ -309,11 +330,13 @@ const sendMessage = async () => {
     })
 
     const replyText = response?.reply || '抱歉，目前暫時無法取得回覆，請稍後再試或透過 Email (lin15642@gmail.com) 與 Lin 聯絡。'
+    const replySuggestions = response?.suggestions || []
 
-    // 4. 加入助理回覆
+    // 4. 加入助理回覆與引導提問
     messages.push({
       role: 'assistant',
       content: replyText,
+      suggestions: replySuggestions,
       time: getCurrentTime()
     })
   } catch (error: any) {
@@ -322,6 +345,7 @@ const sendMessage = async () => {
     messages.push({
       role: 'assistant',
       content: `❌ **連線發生異常**：${errStatusMessage}\n\n若問題持續，歡迎直接透過 Email 聯繫 Lin：**lin15642@gmail.com**`,
+      suggestions: ['詢問 Lin 的其他技術專長', '直接寄信聯絡 Lin'],
       time: getCurrentTime()
     })
   } finally {
