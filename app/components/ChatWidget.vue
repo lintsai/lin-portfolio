@@ -405,8 +405,10 @@ const renderMarkdown = (content: string): string => {
 
   html = formattedLines.join('\n')
 
-  // 8. 換行轉換為段落間距或 <br/>
-  html = html.replace(/\n\n+/g, '<div class="h-2.5"></div>')
+  // 8. 換行轉換為緊湊段落間距或 <br/>
+  html = html.replace(/<\/ul>\s*<br\s*\/?>/gi, '</ul>')
+  html = html.replace(/<\/ol>\s*<br\s*\/?>/gi, '</ol>')
+  html = html.replace(/\n\n+/g, '<div class="h-1.5"></div>')
   html = html.replace(/\n/g, '<br/>')
 
   return html
@@ -439,13 +441,14 @@ watch(
 
 /* Markdown 樣式微調 */
 .chat-markdown :deep(p) {
-  margin: 0.25rem 0;
+  margin: 0.15rem 0;
 }
 .chat-markdown :deep(ul),
 .chat-markdown :deep(ol) {
-  margin: 0.4rem 0;
+  margin: 0.25rem 0;
 }
 .chat-markdown :deep(li) {
-  margin: 0.2rem 0;
+  margin: 0.1rem 0;
+  line-height: 1.45;
 }
 </style>
