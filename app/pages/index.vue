@@ -38,7 +38,20 @@ useHead({
     {
       name: 'description',
       content: '蔡弘霖 Lin Tsai 個人官方品牌網站。具備 10 年軟體架構底蘊與 5 年技術主管管理經驗（帶領 9~12 人敏捷團隊）。專注於企業私有化 AI / RAG 落地、金融級 CTI 客服中台、高併發微服務架構與系統整合。'
-    }
+    },
+    { property: 'og:title', content: 'Lin Tsai (蔡弘霖) | 軟體專案主管 · 解決方案架構師' },
+    {
+      property: 'og:description',
+      content: '10 年後端架構 × 5 年技術主管管理 (9-12人) × 企業私有化 AI / RAG 落地實務。'
+    },
+    { property: 'og:url', content: 'https://lin-portfolio-seven.vercel.app/' },
+    { property: 'og:image', content: 'https://lin-portfolio-seven.vercel.app/og-image.png' },
+    { name: 'twitter:title', content: 'Lin Tsai (蔡弘霖) | 軟體專案主管 · 解決方案架構師' },
+    {
+      name: 'twitter:description',
+      content: '10 年後端架構 × 5 年技術主管管理 (9-12人) × 企業私有化 AI / RAG 落地實務。'
+    },
+    { name: 'twitter:image', content: 'https://lin-portfolio-seven.vercel.app/og-image.png' }
   ]
 })
 </script>
