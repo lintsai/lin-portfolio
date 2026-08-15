@@ -12,10 +12,14 @@
     <!-- Footer -->
     <FooterSection />
 
+    <!-- Lin Tsai 專屬 AI 助理懸浮對話視窗 -->
+    <ChatWidget />
+
   </div>
 </template>
 
 <script setup lang="ts">
 import Navbar from './components/Navbar.vue'
 import FooterSection from './components/FooterSection.vue'
+import ChatWidget from './components/ChatWidget.vue'
 </script>

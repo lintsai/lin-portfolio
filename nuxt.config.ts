@@ -4,6 +4,10 @@ export default defineNuxtConfig({
   devtools: { enabled: true },
   css: ['~/assets/css/main.css'],
   modules: ['@nuxtjs/tailwindcss'],
+  runtimeConfig: {
+    groqApiKey: process.env.GROQ_API_KEY || '',
+    groqModel: process.env.GROQ_MODEL || 'llama-3.3-70b-versatile'
+  },
   app: {
     head: {
       htmlAttrs: {
