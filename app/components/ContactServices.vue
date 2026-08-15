@@ -94,7 +94,7 @@
                 to="/"
                 class="text-xs text-slate-400 hover:text-white underline"
               >
-                ← 查看 Lin Tsai 的個人完整職涯履歷與管理背景
+                ← 查看 Lin Tsai 的個人經歷實績與管理背景
               </NuxtLink>
             </div>
 
