@@ -51,6 +51,7 @@
           <a
             v-if="isCareerPage"
             :href="resumeDownloadUrl"
+            download="Lin_Tsai_Resume_2026.pdf"
             target="_blank"
             class="hidden lg:flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold text-slate-200 bg-slate-800/90 hover:bg-slate-700 hover:text-white rounded-xl border border-slate-700 transition shadow-sm whitespace-nowrap"
             title="下載完整履歷 PDF"
@@ -136,6 +137,7 @@
         <a
           v-if="isCareerPage"
           :href="resumeDownloadUrl"
+          download="Lin_Tsai_Resume_2026.pdf"
           target="_blank"
           class="w-full py-2.5 text-center text-xs font-semibold text-slate-200 bg-slate-800 rounded-xl border border-slate-700 transition"
         >

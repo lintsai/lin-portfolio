@@ -55,7 +55,7 @@ export const portfolioData = {
     avatarUrl: '/images/lin_portrait_real.png',
     avatarAnimeUrl: '/images/peacxe_anime_avatar.png',
     bannerUrl: '/images/peacxe_banner.png',
-    resumePdfUrl: '/api/download-resume',
+    resumePdfUrl: '/Lin_Tsai_Resume.pdf',
     resumeDirectPath: '/Lin_Tsai_Resume.pdf',
     socials: {
       github: 'https://github.com/lintsai',

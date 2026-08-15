@@ -91,6 +91,7 @@
                 <span class="text-slate-400">完整版個人資歷</span>
                 <a
                   :href="profile.resumePdfUrl"
+                  download="Lin_Tsai_Resume_2026.pdf"
                   target="_blank"
                   class="font-semibold text-blue-400 hover:text-blue-300 underline flex items-center gap-1"
                 >

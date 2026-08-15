@@ -58,6 +58,7 @@
           <div class="flex flex-wrap gap-3.5 pt-2">
             <a
               :href="profile.resumePdfUrl"
+              download="Lin_Tsai_Resume_2026.pdf"
               target="_blank"
               class="px-6 py-3.5 rounded-xl font-bold text-xs sm:text-sm text-white bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-700 hover:from-blue-500 hover:to-indigo-500 shadow-lg shadow-blue-600/30 transition transform hover:-translate-y-0.5 flex items-center gap-2 cursor-pointer"
               title="點擊直接下載完整履歷 PDF"
