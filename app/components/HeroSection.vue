@@ -13,7 +13,7 @@
           <!-- Top Badge (Clean responsive nowrap on PC) -->
           <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-semibold bg-slate-800/90 text-blue-400 border border-blue-500/25 shadow-inner whitespace-nowrap">
             <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse shrink-0"></span>
-            <span class="font-bold text-emerald-400">開放全職機會</span>
+            <span class="font-bold text-emerald-400">開放高階職涯洽談</span>
             <span class="text-slate-600">•</span>
             <span class="text-slate-300">10年後端架構 × 5年技術管理</span>
           </div>

@@ -73,29 +73,29 @@
               </a>
             </div>
 
-            <!-- Job Preferences -->
+            <!-- Cooperation Preferences -->
             <div class="bg-slate-950/70 rounded-2xl p-4 border border-slate-800 space-y-3 text-xs">
               <div class="flex items-center justify-between text-slate-300">
                 <span class="text-slate-400">偏好合作型態</span>
-                <span class="font-semibold text-white">全職領導職缺 · 顧問合作 · 混合辦公</span>
+                <span class="font-semibold text-white">全職技術管理 · 架構顧問 · 專案協作</span>
               </div>
               <div class="flex items-center justify-between text-slate-300">
                 <span class="text-slate-400">主要活動地點</span>
                 <span class="font-semibold text-white">台北市 · 新北市 · 桃園市 · 新竹縣市</span>
               </div>
               <div class="flex items-center justify-between text-slate-300">
-                <span class="text-slate-400">可洽談時間</span>
-                <span class="font-semibold text-emerald-400">錄取確認後約 1~2 個月可就任</span>
+                <span class="text-slate-400">可啟動時程</span>
+                <span class="font-semibold text-emerald-400">確認合作後約 1~2 個月可正式啟動 / 到任交接</span>
               </div>
               <div class="flex items-center justify-between text-slate-300 border-t border-slate-800 pt-3">
-                <span class="text-slate-400">完整版個人資歷</span>
+                <span class="text-slate-400">完整專業資歷</span>
                 <a
                   :href="profile.resumePdfUrl"
                   download="Lin_Tsai_Resume_2026.pdf"
                   target="_blank"
                   class="font-semibold text-blue-400 hover:text-blue-300 underline flex items-center gap-1"
                 >
-                  下載 PDF 履歷 ↗
+                  下載完整經歷 (PDF) ↗
                 </a>
               </div>
             </div>
@@ -260,14 +260,14 @@ const handleSubmit = () => {
 `您好 Lin 弘霖，
 
 我是 ${form.company} 的 ${form.name}。
-我們目前正在招募【${form.jobTitle}】職位（或評估相關技術合作），看到您的經歷與專案實績非常符合我們的需求，希望能與您安排時間進一步交流洽談。
+我們目前正在尋求【${form.jobTitle}】技術領導人才（或評估相關架構專案合作），看到您的經歷與專案實績非常契合我們的方向，希望能與您安排時間進一步交流洽談。
 
-【職位與合作說明】：
+【合作項目與說明】：
 ${form.message}
 
 聯絡信箱：${form.email}
 
-期待收到您的回覆，謝謝！`
+期待與您進一步交流，謝謝！`
   )
 
   window.location.href = `mailto:${profile.email}?subject=${subject}&body=${body}`
