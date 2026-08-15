@@ -2,12 +2,12 @@
   <div class="fixed bottom-6 right-6 z-50 font-sans">
     <!-- 1. 懸浮啟動按鈕 (Floating Action Button) -->
     <transition
-      enter-active-class="transition duration-300 ease-out transform"
-      enter-from-class="scale-75 opacity-0"
+      enter-active-class="transition duration-250 ease-out transform origin-bottom-right"
+      enter-from-class="scale-0 opacity-0"
       enter-to-class="scale-100 opacity-100"
-      leave-active-class="transition duration-200 ease-in transform"
+      leave-active-class="transition duration-150 ease-in transform origin-bottom-right"
       leave-from-class="scale-100 opacity-100"
-      leave-to-class="scale-75 opacity-0"
+      leave-to-class="scale-0 opacity-0"
     >
       <button
         v-if="!isOpen"
@@ -16,7 +16,7 @@
         class="group relative flex items-center gap-3 px-4 py-3 bg-[#111827]/95 hover:bg-[#1f293d] text-white rounded-full border border-blue-500/40 shadow-[0_0_25px_rgba(37,99,235,0.35)] hover:shadow-[0_0_35px_rgba(59,130,246,0.55)] transition-all duration-300 transform hover:-translate-y-0.5 active:translate-y-0"
       >
         <!-- 脈衝動畫光環 -->
-        <span class="absolute -top-1 -right-1 flex h-3.5 w-3.5">
+        <span class="absolute -top-1 -right-1 flex h-3.5 w-3.5 pointer-events-none">
           <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
           <span class="relative inline-flex rounded-full h-3.5 w-3.5 bg-blue-500 border-2 border-[#111827]"></span>
         </span>
@@ -37,16 +37,16 @@
 
     <!-- 2. AI 對話視窗 (Chat Modal Window) -->
     <transition
-      enter-active-class="transition duration-300 ease-out transform"
-      enter-from-class="opacity-0 translate-y-8 scale-95"
-      enter-to-class="opacity-100 translate-y-0 scale-100"
-      leave-active-class="transition duration-200 ease-in transform"
-      leave-from-class="opacity-100 translate-y-0 scale-100"
-      leave-to-class="opacity-0 translate-y-8 scale-95"
+      enter-active-class="transition duration-300 cubic-bezier(0.16, 1, 0.3, 1) transform origin-bottom-right"
+      enter-from-class="opacity-0 translate-y-4 scale-95 pointer-events-none"
+      enter-to-class="opacity-100 translate-y-0 scale-100 pointer-events-auto"
+      leave-active-class="transition duration-200 cubic-bezier(0.16, 1, 0.3, 1) transform origin-bottom-right"
+      leave-from-class="opacity-100 translate-y-0 scale-100 pointer-events-auto"
+      leave-to-class="opacity-0 translate-y-4 scale-95 pointer-events-none"
     >
       <div
         v-if="isOpen"
-        class="flex flex-col w-[92vw] sm:w-[410px] h-[580px] max-h-[82vh] bg-[#0d111a]/95 backdrop-blur-xl border border-slate-700/80 rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.7),0_0_30px_rgba(37,99,235,0.2)] overflow-hidden"
+        class="flex flex-col w-[92vw] sm:w-[410px] h-[580px] max-h-[82vh] bg-[#0d111a]/95 backdrop-blur-xl border border-slate-700/80 rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.7),0_0_30px_rgba(37,99,235,0.2)] overflow-hidden origin-bottom-right"
       >
         <!-- 頂部標題列 (Header) -->
         <div class="px-4 py-3.5 bg-[#131b2c] border-b border-slate-700/60 flex items-center justify-between relative">
@@ -321,13 +321,16 @@ const sendMessage = async () => {
       content: m.content
     }))
 
-    // 3. 呼叫 Nuxt 3 伺服器端 API
-    const response = await $fetch<{ reply?: string; suggestions?: string[] }>('/api/chat', {
-      method: 'POST',
-      body: {
-        messages: payloadMessages
-      }
-    })
+    // 3. 呼叫 Nuxt 3 伺服器端 API 並加入自然思考擬真延遲 (約 850ms)
+    const [response] = await Promise.all([
+      $fetch<{ reply?: string; suggestions?: string[] }>('/api/chat', {
+        method: 'POST',
+        body: {
+          messages: payloadMessages
+        }
+      }),
+      new Promise((resolve) => setTimeout(resolve, 850)) // 擬真思考時間
+    ])
 
     const replyText = response?.reply || '抱歉，目前暫時無法取得回覆，請稍後再試或透過 Email (lin15642@gmail.com) 與 Lin 聯絡。'
     const replySuggestions = response?.suggestions || []
