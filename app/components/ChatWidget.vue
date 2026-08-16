@@ -329,7 +329,7 @@ const sendMessage = async () => {
           messages: payloadMessages
         }
       }),
-      new Promise((resolve) => setTimeout(resolve, 850)) // 擬真思考時間
+      new Promise((resolve) => setTimeout(resolve, 1350)) // 擬真思考時間 (1.35秒)
     ])
 
     const replyText = response?.reply || '抱歉，目前暫時無法取得回覆，請稍後再試或透過 Email (lin15642@gmail.com) 與 Lin 聯絡。'
