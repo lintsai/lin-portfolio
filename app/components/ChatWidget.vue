@@ -66,11 +66,11 @@
             <div>
               <div class="flex items-center gap-1.5">
                 <h3 class="text-sm font-bold text-slate-100 tracking-wide">Lin's AI Assistant</h3>
-                <span class="px-1.5 py-0.2 text-[10px] font-medium bg-blue-500/20 text-blue-300 border border-blue-400/30 rounded">顧問助理</span>
+                <span class="px-1.5 py-0.5 text-[10px] font-medium bg-blue-500/20 text-blue-300 border border-blue-400/30 rounded">顧問特助</span>
               </div>
               <p class="text-[11px] text-slate-400 flex items-center gap-1">
                 <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
-                線上 · 專屬知識庫驅動
+                LLaMA 3.3 70B · 專屬知識庫驅動
               </p>
             </div>
           </div>
@@ -105,23 +105,6 @@
           ref="messagesContainer"
           class="flex-1 p-4 overflow-y-auto space-y-4 scrollbar-thin scrollbar-thumb-slate-700 scrollbar-track-transparent text-sm"
         >
-          <!-- 預設快捷提示詞卡片 (Quick Prompt Suggestions) -->
-          <div v-if="messages.length <= 1" class="mb-2 p-3 bg-[#161f30]/60 border border-blue-500/20 rounded-xl space-y-2">
-            <p class="text-xs font-semibold text-blue-300 flex items-center gap-1.5">
-              <span>💡</span> 推薦詢問方向（點擊直接發問）：
-            </p>
-            <div class="flex flex-wrap gap-1.5">
-              <button
-                v-for="(suggestion, idx) in quickSuggestions"
-                :key="idx"
-                @click="sendQuickPrompt(suggestion.prompt)"
-                class="text-xs text-left px-2.5 py-1.5 bg-[#1f2a3f] hover:bg-blue-600/30 text-slate-300 hover:text-blue-200 border border-slate-700 hover:border-blue-400/40 rounded-lg transition-all"
-              >
-                {{ suggestion.label }}
-              </button>
-            </div>
-          </div>
-
           <!-- 對話歷史氣泡 -->
           <div
             v-for="(msg, index) in messages"
