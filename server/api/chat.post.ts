@@ -8,14 +8,10 @@ interface ChatMessage {
 const SYSTEM_PROMPT = `你是 Lin Tsai (蔡弘霖) 的個人專屬 AI 技術顧問特助。你的任務是代表 Lin 以清晰、精準、好閱讀且具備實績佐證的方式回答訪客問題。
 
 ---
-【排版與閱讀性原則（最重要）】
+【排版與閱讀性原則】
 1. **結構分明、排版優美**：
    - 採用「簡明前言 + 2~3 個粗體重點條列 + 簡短結語」的結構。
-   - 範例格式：
-     Lin 在廣明光電的 AI & RAG 實績主要包含：
-     1. **企業私有化 RAG 知識庫**：以 2x RTX 4090 GPU 伺服器建置地端 Ollama 算力，導入 Hybrid Search 與 Re-ranking 防幻覺架構，規章檢索提速 70%，機敏資料 100% 留存內網。
-     2. **AI 工作流自動化**：主導跨部門 AI Workshop 探索業務痛點，將 AI Agent 工作流與既有系統 API 深度串接。
-     3. **AIOps 智能維運**：建置專用 AI Server 算力、CI/CD 自動化與日誌異常預警。
+   - 條列時請加上適當換行與粗體標題，方便快速閱讀。
 2. **長度適中**：每次回答約 **120~180 字**，禁止一大坨無分段長文，也禁止單詞乾癟列點。
 3. **主體正確**：一律稱呼「Lin」或「Lin 的團隊」，嚴禁在開頭機械式重複提問字眼。
 
@@ -61,7 +57,6 @@ export default defineEventHandler(async (event) => {
     const config = useRuntimeConfig()
     const apiKey = (config.groqApiKey as string) || process.env.GROQ_API_KEY || process.env.OPENAI_API_KEY || ''
     const primaryModel = (config.groqModel as string) || process.env.GROQ_MODEL || 'llama-3.3-70b-versatile'
-    const fallbackModel = 'llama-3.1-8b-instant'
 
     if (!apiKey) {
       console.warn('[AI Assistant] GROQ_API_KEY is not configured.')
@@ -82,8 +77,8 @@ export default defineEventHandler(async (event) => {
           .trim()
       }))
 
-    const createPayload = (modelName: string) => ({
-      model: modelName,
+    const payload = {
+      model: primaryModel,
       messages: [
         {
           role: 'system',
@@ -94,11 +89,11 @@ export default defineEventHandler(async (event) => {
       temperature: 0.3,
       max_tokens: 380,
       top_p: 0.85
-    })
+    }
 
     let replyContent = ''
 
-    // 優先呼叫 70B 模型
+    // 專注呼叫高品質 LLaMA 3.3 70B 模型（若遇瞬間 429 則自動等待 1.2s 重試，杜絕低階備援模型幻覺）
     try {
       const response = await $fetch<{
         choices?: Array<{
@@ -112,15 +107,17 @@ export default defineEventHandler(async (event) => {
           'Authorization': `Bearer ${apiKey}`,
           'Content-Type': 'application/json'
         },
-        body: createPayload(primaryModel)
+        body: payload
       })
       replyContent = response?.choices?.[0]?.message?.content?.trim() || ''
     } catch (primaryError: any) {
-      console.warn(`[AI Assistant] Primary model (${primaryModel}) rate-limited. Falling back to ${fallbackModel}...`, primaryError?.message)
+      console.warn(`[AI Assistant] Primary call encountered error (${primaryError?.message}). Retrying once...`)
       
-      // 自動切換至 8B fallback 模型
+      // 自動等待 1.2 秒避開瞬間滑動視窗限流
+      await new Promise((resolve) => setTimeout(resolve, 1200))
+
       try {
-        const fallbackResponse = await $fetch<{
+        const retryResponse = await $fetch<{
           choices?: Array<{
             message?: {
               content?: string
@@ -132,14 +129,14 @@ export default defineEventHandler(async (event) => {
             'Authorization': `Bearer ${apiKey}`,
             'Content-Type': 'application/json'
           },
-          body: createPayload(fallbackModel)
+          body: payload
         })
-        replyContent = fallbackResponse?.choices?.[0]?.message?.content?.trim() || ''
-      } catch (fallbackError: any) {
-        console.error('[AI Assistant] Both models failed:', fallbackError)
+        replyContent = retryResponse?.choices?.[0]?.message?.content?.trim() || ''
+      } catch (retryError: any) {
+        console.error('[AI Assistant] Retry also failed:', retryError)
         return {
-          reply: `目前 AI 助理連線較為頻繁，請稍候 3~5 秒後再次嘗試，或直接透過 Email 聯繫 Lin：**lin15642@gmail.com**！`,
-          suggestions: ['了解 Lin 的 RAG 落地實績', '詢問金融通訊中台專案', '直接寄信聯絡 Lin']
+          reply: `💬 目前 AI 助理連線較為頻繁，為確保回覆的專業性與真實度，請稍候 3~5 秒後再次提問；或直接透過 Email 聯繫 Lin：**lin15642@gmail.com**！`,
+          suggestions: ['了解 Lin 在廣明光電的 AI 實績', '詢問金融級通訊中台專案架構', '直接寄信聯絡 Lin']
         }
       }
     }
